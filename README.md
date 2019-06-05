@@ -35,7 +35,7 @@ and make some empty files to write code into
 
 copy some test text into `index.html`
 
-then open the html file in your browser
+then open the html file in your browser... you should see the test text. Once you do, you're ready to start!
 
 
 ## main development
