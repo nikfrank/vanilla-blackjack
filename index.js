@@ -27,63 +27,20 @@ dealCard = ()=>({
   suit: Math.floor(Math.random()*4),
 });
 
-onload2 = ()=>{
-  const initDeal = {
-    player: [ dealCard(), dealCard() ],
-    dealer: [ dealCard(), dealCard() ],
-  };
+const dealerHitting = (hand)=>{
+  const hasAce = !!hand.find(card => card.rank === 0);
+  const naiveTotal = hand.reduce((runningTotal, card)=>
+    runningTotal + Math.min(10, card.rank + 1), 0);
 
-  state = {
-    ...initDeal,
-    playerTotal: calculateTotal(initDeal.player),
-    dealerTotal: calculateTotal(initDeal.dealer),
-  }
+  const total = (hasAce && naiveTotal <= 11) ? naiveTotal + 10 : naiveTotal;
 
-  setState = (nextStatePart)=>{
-    state = {...state, ...nextStatePart };
-    render();
-  }
-
-  hit = ()=>{
-    const nextCards = [...state.player, dealCard()];
-    setState({
-      player: nextCards,
-      playerTotal: calculateTotal( nextCards ),
-    });
-  }
-
-  newDeal = ()=>{
-    const nextDeal = {
-      player: [ dealCard(), dealCard() ],
-      dealer: [ dealCard(), dealCard() ],
-    };
-
-    setState({
-      ...nextDeal,
-      playerTotal: calculateTotal(nextDeal.player),
-      dealerTotal: calculateTotal(nextDeal.dealer),
-    });
-  }
-
-  render = ()=>{
-    document.querySelector('.player').innerHTML =
-      state.player.reduce(( html, card )=>
-        html + cards[card.rank][card.suit] + ' ', '') +
-      ' = ' + state.playerTotal;
-    
-    document.querySelector('.dealer').innerHTML =
-      cards[state.dealer[0].rank][state.dealer[0].suit] + ' ' +
-      cards[state.dealer[1].rank][state.dealer[1].suit] + ' ' +
-      ' = ' + state.dealerTotal;
-  }
-
-  render();
+  return ( naiveTotal < 17 ) || ( naiveTotal === 7 && total === 17 );
 };
 
 onload = ()=> {
   state = {
-    player: [ { rank: 0, suit: 3 }, { rank: 12, suit: 2 } ],
-    dealer: [ { rank: 0, suit: 0 }, { rank: 8, suit: 1 } ],
+    player: [ dealCard(), dealCard() ],
+    dealer: [ dealCard() ],
   }
 
   setState = (nextState)=>{
@@ -93,19 +50,58 @@ onload = ()=> {
 
   deal = ()=>{
     setState({
-      player: [ { rank: 1, suit: 3 }, { rank: 11, suit: 1 } ],
-      dealer: [ { rank: 7, suit: 2 }, { rank: 9, suit: 2 } ],
+      player: [ dealCard(), dealCard() ],
+      dealer: [ dealCard() ],
     })
+  }
+
+  hit = ()=>{
+    setState({
+      player: [...state.player, dealCard()],
+    })
+
+    const playerTotal = calculateTotal( state.player );
+    if( playerTotal > 21 ) stand();
+  }
+
+  stand = ()=>{
+    do setState({ dealer: [...state.dealer, dealCard()] });
+    while( dealerHitting( state.dealer ) );
+    
+    const playerTotal = calculateTotal( state.player );
+    const dealerTotal = calculateTotal( state.dealer );
+
+    setTimeout(()=> {
+      if( playerTotal === 21 && state.player.length === 2 ) alert('BlackJack!');
+      else if( playerTotal > 21 ) alert('Lost! Bust!');
+      else if( dealerTotal > 21 ) alert('Winning! Dealer Bust!');
+      else if( playerTotal > dealerTotal ) alert('Winning!');
+      else if( playerTotal === dealerTotal ) alert('Push!');
+      else alert('Lost! '+dealerTotal+' to '+playerTotal);
+
+      deal();
+    }, 3000);
   }
   
   render = ()=>{
-    document.querySelector('.dealer').innerHTML =
-      cards[ state.dealer[0].rank ][ state.dealer[0].suit ] + ' ' +
-      cards[ state.dealer[1].rank ][ state.dealer[1].suit ];
-
     document.querySelector('.player').innerHTML =
-      cards[ state.player[0].rank ][ state.player[0].suit ] + ' ' +
-      cards[ state.player[1].rank ][ state.player[1].suit ];
+      state.player.reduce(( html, card )=>
+        html + cards[card.rank][card.suit] + ' ', '');
+
+    document.querySelector('.dealer').innerHTML =
+      state.dealer.reduce(( html, card )=>
+        html + cards[card.rank][card.suit] + ' ', '');
+
+    const playerTotal = calculateTotal( state.player );
+    const hitButton = document.querySelector('button[onclick*=hit]');
+    
+    if( playerTotal > 21 ){
+      hitButton.disabled = true;
+      hitButton.innerHTML = 'BUST';
+    } else {
+      hitButton.disabled = false;
+      hitButton.innerHTML = 'Hit me!';
+    }
   }
   
   render();
