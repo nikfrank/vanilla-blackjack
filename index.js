@@ -27,7 +27,7 @@ dealCard = ()=>({
   suit: Math.floor(Math.random()*4),
 });
 
-onload = ()=>{
+onload2 = ()=>{
   const initDeal = {
     player: [ dealCard(), dealCard() ],
     dealer: [ dealCard(), dealCard() ],
@@ -77,5 +77,36 @@ onload = ()=>{
       ' = ' + state.dealerTotal;
   }
 
+  render();
+};
+
+onload = ()=> {
+  state = {
+    player: [ { rank: 0, suit: 3 }, { rank: 12, suit: 2 } ],
+    dealer: [ { rank: 0, suit: 0 }, { rank: 8, suit: 1 } ],
+  }
+
+  setState = (nextState)=>{
+    state = { ...state, ...nextState }
+    render();
+  }
+
+  deal = ()=>{
+    setState({
+      player: [ { rank: 1, suit: 3 }, { rank: 11, suit: 1 } ],
+      dealer: [ { rank: 7, suit: 2 }, { rank: 9, suit: 2 } ],
+    })
+  }
+  
+  render = ()=>{
+    document.querySelector('.dealer').innerHTML =
+      cards[ state.dealer[0].rank ][ state.dealer[0].suit ] + ' ' +
+      cards[ state.dealer[1].rank ][ state.dealer[1].suit ];
+
+    document.querySelector('.player').innerHTML =
+      cards[ state.player[0].rank ][ state.player[0].suit ] + ' ' +
+      cards[ state.player[1].rank ][ state.player[1].suit ];
+  }
+  
   render();
 };
